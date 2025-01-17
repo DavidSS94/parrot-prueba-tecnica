@@ -1,2 +1,6 @@
 Flask
 Flask-Cors
+
+sqlalchemy
+sqlalchemy_utils
+psycopg2
