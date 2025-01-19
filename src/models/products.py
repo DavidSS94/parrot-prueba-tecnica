@@ -150,3 +150,22 @@ class Product(Base):
 
         except Exception as error:
             print(error.args[0])
+
+    def get_by_id(
+            self,
+            id: Integer
+        ) -> dict:
+
+        try:
+            product = g.session.query(Product).filter(
+                Product.id == id
+            ).first()
+
+            if product:
+                return product
+
+            else:
+                return None
+
+        except Exception as error:
+            print(error.args[0])
