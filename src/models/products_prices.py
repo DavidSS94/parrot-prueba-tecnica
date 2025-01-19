@@ -36,8 +36,6 @@ class Products_prices(Base):
             body: Optional[dict] = {}
         ) -> None:
 
-        import pdb; pdb.set_trace()
-
         if body:
             for key in body.keys():
                 if key == "product_name":
