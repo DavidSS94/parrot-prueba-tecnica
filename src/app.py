@@ -18,6 +18,15 @@ def before_request():
     g.engine = get_engine()
     g.session = get_session(g.engine)
 
+    g.classes = {
+        'waiters': Waiter,
+        'products': Product,
+        'reports': Reports,
+        'orders': Orders,
+        'products_prices': Products_prices
+    }
+
+
 @app.route("/", methods=["GET"])
 def hello_word():
     response = {
@@ -49,7 +58,7 @@ def define_database():
 from src.models.base import Base
 from src.models.waiter import Waiter
 from src.models.order import Orders
-from src.models.products import Products
+from src.models.products import Product
 from src.models.products_prices import Products_prices
 from src.models.report import Reports
 @app.route("/define_models", methods=["GET"])
@@ -66,18 +75,41 @@ def create_tables():
         response["message"] = "Error al crear las tablas"
         response["details"] = error.args[0]
         response["code"] = 500
+        return jsonify(response), response["code"]
 
     return jsonify(response), response["code"]
 
 
-@app.route("/waiters/create", methods=["PUT"])
-def create_waiter():
+@app.route("/create", methods=["PUT"])
+def create():
     response = {
         "code": 200
     }
     body = request.json
 
-    (code, message) = Waiter(body).create()
+    if 'model' not in body:
+        response["message"] = "Internal error"
+        response["details"] = "Defina el modelo solicitado"
+        response["code"] = 500
+        return jsonify(response), response["code"]
+    
+    model = body['model']
+
+    if model not in g.classes:
+        response["message"] = "Internal error"
+        response["details"] = "El modelo solicitado no existe"
+        response["code"] = 500
+        return jsonify(response), response["code"]
+
+    if 'params' not in body:
+        response["message"] = "Internal error"
+        response["details"] = "Defina los parametros solicitado"
+        response["code"] = 500
+        return jsonify(response), response["code"]
+
+    params = body['params']
+
+    (code, message) = g.classes[model](params).create()
 
     if code == 200:
         response['message'] = message
@@ -89,13 +121,21 @@ def create_waiter():
     return jsonify(response), response["code"]
 
 
-@app.route("/waiters/read", methods=["GET"])
-def get_waiter_all():
+@app.route("/get_all/<model>", methods=["GET"])
+def get_all(model):
     response = {
         "code": 200
     }
 
-    (code, message, data) = Waiter().get_all()
+    model = request.view_args['model']
+
+    if model not in g.classes:
+        response["message"] = "Internal error"
+        response["details"] = "El modelo solicitado no existe"
+        response["code"] = 500
+        return jsonify(response), response["code"]
+
+    (code, message, data) = g.classes[model]().get_all()
 
     if code == 200:
         response['data'] = data
@@ -107,35 +147,51 @@ def get_waiter_all():
     return jsonify(response), response["code"]
 
 
-@app.route("/waiters/read/<name>", methods=["GET"])
-def get_waiter_id(name):
+@app.route("/find/<model>/<filter>", methods=["GET"])
+def get_id(model, filter):
     response = {
         "code": 200
     }
 
-    name = request.view_args['name']
+    model = request.view_args['model']
 
-    (code, message, data) = Waiter().find_one(name)
+    if model not in g.classes:
+        response["message"] = "Internal error"
+        response["details"] = "El modelo solicitado no existe"
+        response["code"] = 500
+        return jsonify(response), response["code"]
+    
+    filter = request.view_args['filter']
+
+    (code, message, data) = g.classes[model]().find_one(filter)
 
     if code == 200:
         response['data'] = data
     else:
         response['message'] = "Internal error"
-        response['details'] = "El mesero solicitado no existe"
+        response['details'] = message
         response['code'] = code
 
     return jsonify(response), response["code"]
 
 
-@app.route("/waiters/delete/<name>", methods=["DELETE"])
-def delete_waiter(name):
+@app.route("/delete/<model>/<name>", methods=["DELETE"])
+def delete(model, name):
     response = {
         "code": 200
     }
 
+    model = request.view_args['model']
+
+    if model not in g.classes:
+        response["message"] = "Internal error"
+        response["details"] = "El modelo solicitado no existe"
+        response["code"] = 500
+        return jsonify(response), response["code"]
+    
     name = request.view_args['name']
 
-    (code, message) = Waiter().delete(name)
+    (code, message) = g.classes[model]().delete(name)
 
     if code == 200:
         response['message'] = message
@@ -147,16 +203,31 @@ def delete_waiter(name):
     return jsonify(response), response["code"]
 
 
-@app.route("/waiters/update/<name>", methods=["PATCH"])
-def update_waiter(name):
+@app.route("/update/<model>/<name>", methods=["PATCH"])
+def update(model, name):
     response = {
         "code": 200
     }
 
+    model = request.view_args['model']
+
+    if model not in g.classes:
+        response["message"] = "Internal error"
+        response["details"] = "El modelo solicitado no existe"
+        response["code"] = 500
+        return jsonify(response), response["code"]
+    
     name = request.view_args['name']
     body = request.json
 
-    (code, message) = Waiter().update(name, body)
+    if not hasattr(g.classes[model](), "update"):
+        response['message'] = "Internal error"
+        response['details'] = "El modelo solicitado no puede realizar esta operación"
+        response['code'] = 500
+
+        return jsonify(response), response["code"]
+
+    (code, message) = g.classes[model]().update(name, body)
 
     if code == 200:
         response['message'] = message
