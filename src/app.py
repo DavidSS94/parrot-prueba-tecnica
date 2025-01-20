@@ -1,6 +1,8 @@
 from flask import Flask, jsonify, g, request
 from flask_cors import CORS
 
+import json
+
 app = Flask(__name__)
 CORS(
     app,
@@ -51,6 +53,35 @@ def define_database():
     else:
         response["message"] = "Internal error"
         response["details"] = message
+
+    return jsonify(response), response["code"]
+
+def get_data_file(file):
+    with open(f"data/{file}.json", "r") as data:
+        return json.load(data)
+
+
+@app.route("/fill_tables", methods=["GET"])
+def fill_tables():
+    response = {
+        "message": "Datos insertados con éxito",
+        "code": 200
+    }
+
+    models_data = {
+        "waiters": get_data_file("waiters"),
+        "orders": get_data_file("orders"),
+        "products": get_data_file("products"),
+        "products_prices": get_data_file("products_prices"),
+    }
+
+    for model in models_data.keys():
+        object_list = []
+        for data in models_data[model]:
+            object_list.append(g.classes[model](data))
+        
+        g.classes[model]().create_many(object_list)
+        print(f"Data insertada en {model}")
 
     return jsonify(response), response["code"]
 
