@@ -114,7 +114,7 @@ def create():
     if code == 200:
         response['message'] = message
     else:
-        response['message'] = "Error al registrar al mesero"
+        response['message'] = "Internal error"
         response['details'] = message
         response['code'] = code
 
@@ -140,7 +140,7 @@ def get_all(model):
     if code == 200:
         response['data'] = data
     else:
-        response['message'] = "Error al registrar al mesero"
+        response['message'] = "Internal error"
         response['details'] = message
         response['code'] = code
 
