@@ -39,9 +39,9 @@ class Products_prices(Base):
         if body:
             for key in body.keys():
                 if key == "product_name":
-                    setattr(Products_prices, 'product_id', Product().get_pk(body[key]))
+                    setattr(self, 'product_id', Product().get_pk(body[key]))
                 else:
-                    setattr(Products_prices, key, body[key])
+                    setattr(self, key, body[key])
 
     def create(self):
         try:
@@ -74,3 +74,22 @@ class Products_prices(Base):
         except Exception as error:
             print(error.args[0])
             return 500, error.args[0], data
+
+    def get_by_pk(
+            self,
+            id: Integer
+        ) -> Integer:
+
+        try:
+            order = g.session.query(Products_prices.id).filter(
+                Products_prices.id == id
+            ).first()
+
+            if order:
+                return order.id
+
+            else:
+                return None
+
+        except Exception as error:
+            print(error.args[0])

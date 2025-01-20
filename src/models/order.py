@@ -162,3 +162,23 @@ class Orders(Base):
 
         except Exception as error:
             print(error.args[0])
+
+
+    def get_by_pk(
+            self,
+            id: Integer
+        ) -> Integer:
+
+        try:
+            order = g.session.query(Orders.id).filter(
+                Orders.id == id
+            ).first()
+
+            if order:
+                return order.id
+
+            else:
+                return None
+
+        except Exception as error:
+            print(error.args[0])
