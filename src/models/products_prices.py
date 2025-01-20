@@ -43,6 +43,18 @@ class Products_prices(Base):
                 else:
                     setattr(self, key, body[key])
 
+
+    def create_many(self, data: list[object]) -> tuple[Integer, String]:
+        try:
+            g.session.add_all(data)
+            g.session.commit()
+            return 200, "Precios de productos registrados"
+
+        except Exception as error:
+            print(error.args[0])
+            return 500, error.args[0]
+
+
     def create(self):
         try:
             g.session.add(self)

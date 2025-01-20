@@ -15,8 +15,15 @@ class Product(Base):
         primary_key=True,
         autoincrement=True
     )
-    name: Mapped[str] = mapped_column(String, nullable=False)
-    type: Mapped[str] = mapped_column(String, nullable=False)
+    name: Mapped[str] = mapped_column(
+        String,
+        nullable=False,
+        unique=True
+    )
+    type: Mapped[str] = mapped_column(
+        String,
+        nullable=False
+    )
 
     def __init__(
             self,
@@ -29,6 +36,17 @@ class Product(Base):
         self.name = body['name']
         self.type = body['type']
 
+
+    def create_many(self, data: list[object]) -> tuple[Integer, String]:
+
+        try:
+            g.session.add_all(data)
+            g.session.commit()
+            return 200, "Productos registrados"
+
+        except Exception as error:
+            print(error.args[0])
+            return 500, error.args[0]
 
     def create(self) -> tuple[Integer, String]:
 

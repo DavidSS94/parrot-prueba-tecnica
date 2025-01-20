@@ -41,6 +41,18 @@ class Waiter(Base):
             return 500, error.args[0]
 
 
+    def create_many(self, data: list[object]) -> tuple[Integer, String]:
+
+        try:
+            g.session.add_all(data)
+            g.session.commit()
+            return 200, "Meseros registrados"
+
+        except Exception as error:
+            print(error.args[0])
+            return 500, error.args[0]
+
+
     def get_all(self):
         data = []
         try:

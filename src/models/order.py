@@ -38,6 +38,21 @@ class Orders(Base):
         
         self.waiter_email = body['waiter_email']
         self.commensal_name = body['commensal_name']
+        
+        if 'date' in body:
+            self.date = body['date']
+
+
+    def create_many(self, data: list[object]) -> tuple[Integer, String]:
+
+        try:
+            g.session.add_all(data)
+            g.session.commit()
+            return 200, "Ordenes registradas"
+
+        except Exception as error:
+            print(error.args[0])
+            return 500, error.args[0]
 
 
     def create(self) -> tuple[Integer, String]:
